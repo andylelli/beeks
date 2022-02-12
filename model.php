@@ -108,8 +108,7 @@ class Model
                     }
                 }
             }            
-        }   
-        $this->writeToLog(print_r($data['rows'], true));   
+        }    
         return $data;
     }     
 	
@@ -158,8 +157,6 @@ class Model
         }     
         
         $query .= " WHERE item_id = '" . $values[0] . "' ";     
-
-        //$this->writeToLog($query);
 
         if ($sql = $this->connection->query($query)) {
             return true;
