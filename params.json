@@ -1,0 +1,194 @@
+{
+    "params": [
+        {
+            "itemsperpage": "10"
+        },
+        {
+            "fieldname": "item_id",
+            "displayname": "Id",
+            "length": "9",
+            "datatype": "int",
+            "mandatory": "true",
+            "type": "header",
+            "position": "1",
+            "create": "false",
+            "update": "false"
+        },             
+        {
+            "fieldname": "Pump_Maker",
+            "displayname": "Pump Maker",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "header",
+            "position": "2",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Pump_Type",
+            "displayname": "Pump Type",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "header",
+            "position": "3",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Part",
+            "displayname": "Part",
+            "length": "500",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "header",
+            "position": "4",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Position_Number",
+            "displayname": "Position Number",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "header",
+            "position": "5",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "PN_1",
+            "displayname": "P/N 1",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "header",
+            "position": "6",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "PN_2",
+            "displayname": "P/N 2",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "7",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Identified_Part",
+            "displayname": "Identified Part",
+            "length": "500",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "header",
+            "position": "8",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Notes",
+            "displayname": "Notes",
+            "length": "500",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "9",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Pricing_Notes",
+            "displayname": "Pricing Notes",
+            "length": "500",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "10",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Stock",
+            "displayname": "Stock",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "11",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Job_Number",
+            "displayname": "Job Number",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "12",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Data_Source",
+            "displayname": "Data Source",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "true",
+            "type": "header",
+            "position": "13",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "Owner",
+            "displayname": "Owner",
+            "length": "50",
+            "datatype": "varchar",
+            "mandatory": "true",
+            "type": "detail",
+            "position": "14",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "item_image1",
+            "displayname": "Image 1",
+            "length": "16777215",
+            "datatype": "image",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "15",
+            "create": "true",
+            "update": "true"
+        },
+        {
+            "fieldname": "item_image2",
+            "displayname": "Image 2",
+            "length": "16777215",
+            "datatype": "image",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "16",
+            "create": "true",
+            "update": "true"
+        },   
+        {
+            "fieldname": "item_image3",
+            "displayname": "Image 3",
+            "length": "16777215",
+            "datatype": "image",
+            "mandatory": "false",
+            "type": "detail",
+            "position": "17",
+            "create": "true",
+            "update": "true"
+        }                 
+    ]
+}

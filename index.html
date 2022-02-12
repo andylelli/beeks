@@ -1,0 +1,985 @@
+<!-- version 1.1 - 11-FEB-2022 -->
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+
+  <!-- BootstrapVue CSS -->
+  <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+
+  <!-- Bootstrap npm CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+  <title>Norton Wells Catalogue</title>
+
+  <style>
+    .pointer {
+      cursor: pointer;
+    }
+  </style>
+
+</head>
+
+<body class="bg-white">
+  <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #ffffff;">
+    <div class="container-fluid">
+      <img src="NortonWellsHighRes-Marine.jpg" width="300" class="mb-3 adding-top-md padding-bottom-md" fluid block
+        rounded></img>
+      <!--
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page">Norton Wells</a>
+          </li>
+        </ul>
+      </div>
+      -->
+    </div>
+  </nav>
+  <div class="container" id="itemApp">
+    <div class="row">
+      <div class="col-md-12 mx-auto my-5">
+
+        <!-- Below Bootstrap Alert dialog show record Insert and Update Messages -->
+        <div v-if="successMsg">
+          <b-alert show variant="success">
+            {{ successMsg }}
+          </b-alert>
+        </div>
+
+        <div class="card mt-5">
+          <div class="card-header">
+
+            <div class="container">
+              <div class="row">
+                <div class="col">
+                  <div class="lead"><button id="show-btn" @click="showModal('add-modal')"
+                      class="btn btn-sm btn-outline-success">Add Item</button></div>
+                </div>
+                <div class="col">
+                  <div class="input-group">
+                    <input v-model="search" type="search" class="form-control rounded" placeholder="Search"
+                      aria-label="Search" aria-describedby="search-addon" />
+                    <button type="button" class="btn btn-outline-primary" @click="searchRecords()">search</button>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="dropdown float-end">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                      aria-expanded="false">
+                      {{ this.itemsShown }}
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item pointer" @click="setPerPage(2)">2</a></li>
+                      <li><a class="dropdown-item pointer" @click="setPerPage(5)">5</a></li>
+                      <li><a class="dropdown-item pointer" @click="setPerPage(10)">10</a></li>
+                      <li><a class="dropdown-item pointer" @click="setPerPage(50)">50</a></li>
+                      <li><a class="dropdown-item pointer" @click="setPerPage(100)">100</a></li>
+                      <li><a class="dropdown-item pointer" @click="setPerPage(200)">200</a></li>
+                      <li><a class="dropdown-item pointer" @click="setPerPage(500)">500</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Show records Start -->
+          <div class="card-body">
+            <div class="text-muted lead text-center" v-if="!allRecords.length">No records found</div>
+            <div class="table-responsive" v-if="allRecords.length">
+              <table class="table table-borderless">
+                <thead class="table-dark">
+                  <tr>
+                    <th v-for="(record, i) in allRecordsHeader" :key="record.position" class="pointer"
+                      @click="sortColumn(record.fieldname, record.datatype)">{{ record.displayname }}</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(record, i) in records" :key="record.item_id">
+                    <td v-for="(field, j) in allRecordsHeader" v-html="header(record, field)"></td>
+                    <td style="width: 190px;">
+                      <button @click="viewRecord(record.item_id)" class="btn btn-sm btn-outline-primary">View</button>
+                      <button @click="editRecord(record.item_id)" class="btn btn-sm btn-outline-warning">Edit</button>
+                      <button @click="deleteRecord(record.item_id)"
+                        class="btn btn-sm btn-outline-danger">Delete</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <p class="text-center" v-html="itemsSelected()"></p>
+          </div>
+          <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+              <li :class="pagePrevClass(page)">
+                <a class="page-link" @click="page--">Previous</a>
+              </li>
+              <li v-if="pageCheck(page, pageNumber)" v-for="pageNumber in pages"
+                :class="pageCurrClass(page, pageNumber)"><a class="page-link" @click="page = pageNumber"> {{pageNumber}}
+                </a>
+              </li>
+              <li :class="pageNextClass(page)">
+                <a class="page-link" @click="page++">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <!-- Show records End -->
+
+        <!-- Add Item Start-->
+        <b-modal ref="add-modal" hide-footer title="Add Item">
+          <form action="" @submit.prevent="onSubmit">
+            <div v-for="(param, i) in params" :key="param.position">
+              <div v-if="param.create == 'true'">
+                <div class="form-group">
+                  <label v-html="displayname(param.displayname, param.mandatory)"></label>
+                  <div v-if="param.datatype != 'image'">
+                    <input type="text" v-model="item[param.fieldname]" class="form-control">
+                  </div>
+                  <div v-else>
+                    <div class="input-group">
+                      <input @change="readURL($event, param.fieldname)" type="file"
+                        :ref="'fileupload_' + param.fieldname" class="form-control" aria-label="Upload">
+                      <b-button v-if="hasImage(param.fieldname)" variant="danger" class="ml-3"
+                        @click="clearImage(param.fieldname)">Clear image</b-button>
+                    </div>
+                    <div v-if="hasImage(param.fieldname)" class="text-center">
+                      <br /><br />
+                      <img :src="imageSrc[param.fieldname]" width="300" class="mb-3 adding-top-md padding-bottom-md"
+                        fluid block rounded></img>
+                    </div>
+                  </div>
+                </div>
+                <br />
+              </div>
+            </div>
+            <br /><br />
+            <div class="form-group">
+              <button class="btn btn-sm btn-outline-success">Add Item</button> &nbsp;
+              <b-button class="btn btn-sm btn-outline-warning" variant="outline-warning" block @click="clear()">
+                Clear
+              </b-button> &nbsp;
+              <b-button class="btn btn-sm btn-outline-danger" variant="outline-danger" block
+                @click="hideModal('add-modal')">Close
+              </b-button>
+            </div>
+          </form>
+        </b-modal>
+        <!-- Add Item End-->
+
+        <!-- Update Item Modal Start -->
+        <b-modal ref="update-modal" hide-footer title="Update Item">
+          <form action="" @submit.prevent="onUpdate">
+            <div v-for="(param, i) in params" :key="param.position">
+              <div v-if="param.update == 'true'">
+                <div class="form-group">
+                  <label v-html="displayname(param.displayname, param.mandatory)"></label>
+                  <div v-if="param.datatype != 'image'">
+                    <input type="text" v-model="update[param.fieldname]" class="form-control">
+                  </div>
+                  <div v-else>
+                    <div class="input-group">
+                      <input @change="readURL($event, param.fieldname)" type="file"
+                        :ref="'fileupload_' + param.fieldname" class="form-control" aria-label="Upload">
+                      <b-button v-if="hasImage(param.fieldname)" variant="danger" class="ml-3"
+                        @click="clearImage(param.fieldname)">Clear image</b-button>
+                    </div>
+                    <div v-if="hasImage(param.fieldname)" class="text-center">
+                      <br /><br />
+                      <img :src="imageSrc[param.fieldname]" width="300" class="mb-3 adding-top-md padding-bottom-md"
+                        fluid block rounded></img>
+                    </div>
+                  </div>
+                </div>
+                <br />
+              </div>
+            </div>
+            <br /><br />
+            <div class="form-group">
+              <button class="btn btn-sm btn-outline-success">Update Item</button> &nbsp;
+              <b-button class="btn btn-sm btn-outline-danger" variant="outline-danger" block
+                @click="hideModal('update-modal')">Close
+              </b-button>
+            </div>
+          </form>
+        </b-modal>
+        <!-- Update Item Modal End -->
+
+        <!-- View Item Modal Start -->
+        <b-modal ref="view-modal" hide-footer title="View Item">
+          <div>
+            <div v-for="(param, i) in params" :key="param.position">
+              <div class="form-group">
+                <div v-if="param.datatype != 'image' && param.fieldname" class="font-weight-normal">
+                  <p><b style="color:#333333;"> {{ param.displayname }}: </b>{{
+                    item[param.fieldname] }}</p>
+                </div>
+                <div v-else-if="param.fieldname" class="font-weight-normal"><b style="color:#333333;"> {{
+                    param.displayname }}: </b><br /></p>
+                  <!--  START FOR EACH PARAM IMAGE COUNT-->
+                  <div v-if="imageCheck(param.fieldname)" class="text-center">
+                    <img v-if="param.datatype == 'image' && item[param.fieldname].length > 4"
+                      :src="item[param.fieldname]" width="300" class="mb-3 pointer"
+                      @click="showImage('view-image', item[param.fieldname])" fluid block rounded />
+                  </div>
+                  <!--  END FOR EACH PARAM IMAGE COUNT-->
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <b-button class="btn btn-sm btn-outline-danger" variant="outline-danger" block
+                @click="hideModal('view-modal')">Close
+              </b-button>
+            </div>
+          </div>
+        </b-modal>
+        <!-- View Item Modal End -->
+
+
+        <!-- View Image Modal Start -->
+        <!-- NEED TO PASS AN IMAGE NUMBER eg 1,2,3-->
+        <b-modal ref="view-image" size="xl" hide-footer title="Image">
+          <div class="text-center">
+            <img :src="this.largeImage" style="height: 100%; width: 100%; object-fit: contain" class="mb-3" fluid block
+              rounded />
+          </div>
+        </b-modal>
+
+      </div>
+    </div>
+    <!-- View Image Modal End -->
+
+
+  </div>
+
+  <!-- Vuejs -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+  <!-- BootstrapVue js -->
+  <script type="text/javascript" src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+
+  <!-- Axios -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- Bootstrap js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+
+  <script>
+
+    const base64Encode = data =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(data);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+
+    const dataURItoBlob = (dataURI) => {
+      const bytes = dataURI.split(',')[0].indexOf('base64') >= 0
+        ? atob(dataURI.split(',')[1])
+        : unescape(dataURI.split(',')[1]);
+      const mime = dataURI.split(',')[0].split(':')[1].split(';')[0];
+      const max = bytes.length;
+      const ia = new Uint8Array(max);
+      for (let i = 0; i < max; i += 1) ia[i] = bytes.charCodeAt(i);
+      return new Blob([ia], { type: mime });
+    };
+
+    // THINK WE ARE OK
+    const resizeImage = ({ file, maxSize }) => {
+      const reader = new FileReader();
+      const image = new Image();
+      const canvas = document.createElement('canvas');
+
+      const resize = () => {
+        let { width, height } = image;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          }
+        } else if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg');
+
+        return dataURItoBlob(dataUrl);
+      };
+
+      return new Promise((ok, no) => {
+        if (!file.type.match(/image.*/)) {
+          no(new Error('Not an image'));
+          return;
+        }
+
+        reader.onload = (readerEvent) => {
+          image.onload = () => ok(resize());
+          image.src = readerEvent.target.result;
+        };
+
+        reader.readAsDataURL(file);
+      });
+    };
+
+    var application = new Vue({
+      el: '#itemApp',
+      data: {
+        item: [],
+        update: [],
+        allRecords: [],
+        allRecordsHeader: [],
+        params: [],
+        update_id: '',
+        successMsg: '',
+        // NEEDS to BE ARRAYS
+        image: {},
+        imageSrc: {},
+        largeImage: {},
+        search: "",
+        page: 1,
+        perPage: 0,
+        pages: [],
+        records: []
+      },
+      watch: {
+        allRecords() {
+          this.setPages();
+          this.paginate(this.allRecords)
+        },
+        page() {
+          this.paginate(this.allRecords)
+        },
+        perPage() {
+          this.setPages();
+          this.paginate(this.allRecords)
+        }
+      },
+      computed: {
+        itemsShown() {
+          return this.perPage + " items shown"
+        },
+      },
+      methods: {
+        hasImage(fieldname) {
+          return !!this.image[fieldname];
+        },
+        pageCheck(page, pageNumber) {
+          if (pageNumber > page + 5) {
+            return false;
+          }
+          else if (pageNumber < page - 5) {
+            return false;
+          }
+          else return true;
+        },
+        itemsSelected() {
+          var count = this.allRecords.length;
+          if (count == 1) {
+            return count + " item selected";
+          }
+          else if (count > 1) {
+            return count + " items selected";
+          }
+        },
+        sortTracker(col) {
+          let len = this.allRecordsHeader.length;
+          for (var i = 0; i < len; i++) {
+            if (this.allRecordsHeader[i].fieldname == col) {
+              if (this.allRecordsHeader[i].sortBy == 0) {
+                this.allRecordsHeader[i].sortBy = 1;
+                return 1;
+              }
+              else {
+                this.allRecordsHeader[i].sortBy = 0;
+                return 0;
+              }
+            }
+          }
+        },
+        sortColumn(col, type) {
+          var sortBy = this.sortTracker(col);
+
+          if (sortBy == 0) {
+            if (type == 'int') {
+              this.allRecords.sort(function (a, b) {
+                return parseInt(a[col]) - parseInt(b[col]);
+              });
+            }
+            else {
+              this.allRecords.sort(function (a, b) {
+                if (a[col] === null) {
+                  a[col] = "";
+                }
+                if (b[col] === null) {
+                  b[col] = "";
+                }
+                return a[col].localeCompare(b[col]);
+              });
+            }
+          }
+          else {
+            if (type == 'int') {
+              this.allRecords.sort(function (a, b) {
+                return parseInt(b[col]) - parseInt(a[col]);
+              });
+            }
+            else {
+              this.allRecords.sort(function (a, b) {
+                if (a[col] === null) {
+                  a[col] = "";
+                }
+                if (b[col] === null) {
+                  b[col] = "";
+                }
+                return b[col].localeCompare(a[col]);
+              });
+            }
+          }
+        },
+        setRecordsHeader() {
+          var params = this.params;
+          var headerFields = [];
+
+          headerFields = params.filter(function (result) {
+            return result.type == "header";
+          });
+
+          headerFields.sort(function (a, b) {
+            return parseInt(a['position']) - parseInt(b['position']);
+          });
+
+          for (var i = 0; i < headerFields.length; i++) {
+            headerFields[i].sortBy = 0;
+          }
+
+          this.allRecordsHeader = headerFields;
+        },
+        setPerPage(i) {
+          this.perPage = i;
+        },
+        pagePrevClass(page) {
+          if (page < 2) {
+            return "page-item disabled";
+          }
+          return "page-item pointer";
+        },
+        pageCurrClass(page, pageNumber) {
+          if (page == pageNumber) {
+            return "page-item active";
+          }
+          return "page-item pointer";
+        },
+        pageNextClass(page) {
+          if (page < this.pages.length) {
+            return "page-item pointer";
+          }
+          return "page-item disabled";
+        },
+        setPages() {
+          let numberOfPages = Math.ceil(this.allRecords.length / this.perPage);
+          this.pages = [];
+          for (let index = 1; index <= numberOfPages; index++) {
+            this.pages.push(index);
+          }
+        },
+        paginate(allRecords) {
+          let page = this.page;
+          let perPage = this.perPage;
+          let from = (page * perPage) - perPage;
+          let to = (page * perPage);
+          this.records = allRecords.slice(from, to);
+        },
+        readURL(event, fieldname) {
+
+          var file = event.target.files[0];
+
+          if (!file.type.match(/image.*/)) {
+            alert(new Error('Not an image'));
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (e) => this.originalImg = e.target.result;
+          reader.readAsDataURL(file); // convert to base64 string
+          // END: preview original
+
+          // START: preview resized
+
+          // NEEDS TO BE ARRAYS
+          resizeImage({ file: file, maxSize: 1000 }).then((resizedImage) => {
+            this.blobToBase64(resizedImage, fieldname);
+          }).catch((err) => {
+            console.error(err);
+          });
+          // END: preview resized
+        },
+        blobToBase64(blob, fieldname) {
+          // NEEDS TO BE ARRAYS
+          base64Encode(blob)
+            .then(value => {
+              this.imageSrc[fieldname] = value;
+              this.image[fieldname] = true;
+            })
+            .catch(() => {
+              this.imageSrc = null;
+              this.image = null;
+            });
+        },
+        imageCheck(fieldname) {
+          // NEEDS TO BE ARRAYS
+          if (this.item[fieldname]) {
+            var image = this.item[fieldname];
+            if (image.length > 4) {
+              return true;
+            }
+            else {
+              false;
+            }
+          }
+          else {
+            false;
+          }
+        },
+        insertModal(field) {
+          console.log(field);
+        },
+        header(record, field) {
+
+          var fieldName = field.fieldname;
+
+          return record[fieldName];
+        },
+        showModal(id) {
+          // NEEDS TO PASS ARRAY POSITION
+          this.$refs[id].show();
+          if (id == 'add-modal') {
+            this.clear();
+            this.instantiateImages();
+          }
+        },
+        hideModal(id) {
+          // NEEDS TO PASS ARRAY POSITION
+          this.$refs[id].hide();
+          this.clear();
+          this.instantiateImages();
+        },
+        showImage(id, image) {
+          // NEEDS TO PASS ARRAY POSITION
+          this.$refs[id].show();
+          this.largeImage = image;
+        },
+        clear() {
+          var obj = {};
+          for (let i = 0; i < this.params.length; i++) {
+            if (this.params[i].fieldname) {
+              var key = this.params[i].fieldname;
+              obj[key] = '';
+              if (this.params[i].datatype == 'image') {
+                var ref = 'fileupload_' + this.params[i].fieldname;
+                if (this.$refs[ref]) {
+                  if (this.$refs[ref][0]) {
+                    this.$refs[ref][0].value = '';
+                  }
+                }
+              }
+            }
+          }
+          this.item = obj;
+          // NEEDS TO PASS ARRAY POSITION
+          this.instantiateImages();
+        },
+        clearImage(fieldname) {
+          this.image[fieldname] = '';
+          this.imageSrc[fieldname] = '';
+          this.largeImage[fieldname] = '';
+          this.update[fieldname] = '';
+          var ref = 'fileupload_' + fieldname;
+          if (this.$refs[ref]) {
+            this.$refs[ref][0].value = null;
+          }
+        },
+        instantiateImages() {
+
+          var imageObj = {};
+          var imageSrcObj = {};
+          var largeImageObj = {};
+
+          for (let i = 0; i < this.params.length; i++) {
+
+            if (this.params[i].datatype == 'image') {
+
+              var key = this.params[i].fieldname;
+              imageObj[key] = '';
+              imageSrcObj[key] = '';
+              largeImageObj[key] = '';
+            }
+          }
+
+          this.image = imageObj;
+          this.imageSrc = imageSrcObj;
+          this.largeImage = largeImageObj;
+
+        },
+        displayname(name, mandatory) {
+          if (mandatory == 'true') {
+            return name + '*';
+          }
+          else {
+            return name;
+          }
+        },
+        searchRecords() {
+          this.successMsg = "";
+          if (this.search == '') {
+            this.allRecords = []
+          }
+          else {
+            var search = encodeURIComponent(this.search);
+            var url = "search.php?search=" + search;
+
+            axios({
+              url: url,
+              method: 'get'
+            })
+              .then(response => {
+
+                this.allRecords = response.data.data.rows;
+                this.params = response.data.data.params.params;
+
+                this.params.sort(function (a, b) {
+                  return parseInt(a['position']) - parseInt(b['position']);
+                });
+
+                var obj = {};
+                for (let i = 0; i < this.params.length; i++) {
+
+                  if (this.params[i].create == 'true') {
+
+                    var key = this.params[i].fieldname;
+                    obj[key] = '';
+                  }
+
+                }
+                this.item = obj;
+                this.update = obj;
+                this.page = 1;
+
+              })
+              .catch(error => {
+                console.log(error)
+              })
+          }
+        },
+        setItemsPerPage() {
+          for (let i = 0; i < this.params.length; i++) {
+            if (this.params[i].itemsperpage) {
+              this.perPage = this.params[i].itemsperpage;
+            }
+          }
+        },
+        getRecords() {
+
+          axios({
+            url: 'read.php',
+            method: 'get'
+          })
+            .then(response => {
+
+              this.allRecords = response.data.data.rows;
+              this.params = response.data.data.params.params;
+
+              this.setItemsPerPage();
+
+              this.params.sort(function (a, b) {
+                return parseInt(a['position']) - parseInt(b['position']);
+              });
+
+              var obj = {};
+              for (let i = 0; i < this.params.length; i++) {
+
+                if (this.params[i].create == 'true') {
+
+                  var key = this.params[i].fieldname;
+                  obj[key] = '';
+                }
+
+              }
+
+              this.instantiateImages();
+
+              this.setRecordsHeader();
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        },
+
+        deleteRecord(id) {
+          if (window.confirm('Are you sure want to delete this item?')) {
+            var fd = new FormData()
+
+            fd.append('id', id)
+
+            axios({
+              url: 'delete.php',
+              method: 'post',
+              data: fd
+            })
+              .then(response => {
+                if (response.data.result == 'success') {
+                  application.successMsg = 'Item deleted successfully';
+                  application.getRecords();
+                } else {
+                  alert('Sorry, fields marked with a * are mandatory');
+                }
+              })
+              .catch(error => {
+                console.log(error)
+              })
+          }
+        },
+
+        editRecord(id) {
+          var fd = new FormData()
+
+          fd.append('id', id)
+
+          axios({
+            url: 'edit.php',
+            method: 'post',
+            data: fd
+          })
+            .then(response => {
+
+              this.update = response.data.row;
+
+              for (let i = 0; i < this.params.length; i++) {
+
+                if (this.params[i].datatype == 'image') {
+
+                  var key = this.params[i].fieldname;
+
+                  if (this.update[key].length > 4) {
+
+                    this.image[key] = true;
+                    this.imageSrc[key] = this.update[key];
+
+                  }
+                }
+              }
+
+              application.showModal('update-modal')
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        },
+
+        viewRecord(id) {
+          var fd = new FormData()
+
+          fd.append('id', id)
+
+          axios({
+            url: 'edit.php',
+            method: 'post',
+            data: fd
+          })
+            .then(response => {
+
+              this.item = response.data.row;
+
+              application.showModal('view-modal')
+
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        },
+        onSubmit() {
+
+          var item = this.item;
+          var valid = true;
+
+          delete item["item_id"];
+
+          for (const key in item) {
+
+            var fieldname = key;
+
+            var mandatoryCheck = this.params.filter(function (result) {
+              return result.fieldname == fieldname;
+            });
+
+            if (mandatoryCheck.length > 0) {
+
+              if (mandatoryCheck[0].mandatory == 'true' && mandatoryCheck[0].create == 'true') {
+                var value = item[fieldname];
+                if (value == '') {
+                  valid = false;
+                }
+              }
+            }
+          }
+
+          if (valid == true) {
+            var fd = new FormData()
+
+            for (const key in item) {
+
+              var fieldname = key;
+              var value = item[key].replaceAll('"', "'");
+
+              fd.append(fieldname, value)
+            }
+
+            // LOOP THROUGH ARRAY n TIMES
+            for (var key in this.imageSrc) {
+              if (this.imageSrc.hasOwnProperty(key)) {
+                fd.append(key, this.imageSrc[key]);
+              }
+            }
+
+            axios({
+              url: 'create.php',
+              method: 'post',
+              data: fd
+            })
+              .then(response => {
+
+                console.log(response.data);
+
+                if (response.data.result == 'success') {
+                  application.successMsg = 'Item inserted successfully';
+
+                  var obj = {};
+                  for (let i = 0; i < this.params.length; i++) {
+
+                    var key = this.params[i].fieldname;
+                    obj[key] = '';
+
+                  }
+
+                  this.instantiateImages();
+
+                  application.hideModal('add-modal')
+                  application.getRecords()
+                } else {
+                  alert('Error inserting item into database');
+                }
+              })
+              .catch(error => {
+                console.log(error)
+              })
+          } else {
+            alert('Sorry, fields marked with a * are mandatory');
+          }
+        },
+        onUpdate() {
+
+          var item = this.update;
+          var valid = true;
+
+          for (const key in item) {
+
+            var fieldname = key;
+            var value = item[key];
+
+            var mandatoryCheck = this.params.filter(function (result) {
+              return result.fieldname == fieldname;
+            });
+
+            if (mandatoryCheck[0].mandatory == 'true' && mandatoryCheck[0].create == 'true') {
+
+              if (value == '') {
+                valid = false;
+              }
+            }
+          }
+
+          if (valid) {
+            var fd = new FormData()
+
+            for (const key in item) {
+
+              var fieldname = key;
+              var value = item[key];
+
+              fd.append(fieldname, value)
+            }
+
+            // LOOP THROUGH ARRAY n TIMES
+            for (var key in this.imageSrc) {
+              if (this.imageSrc.hasOwnProperty(key)) {
+                fd.append(key, this.imageSrc[key]);
+              }
+            }
+
+            axios({
+              url: 'update.php',
+              method: 'post',
+              data: fd
+            })
+              .then(response => {
+
+                if (response.data.result == 'success') {
+                  application.successMsg = 'Item updated successfully';
+
+                  var obj = {};
+                  for (let i = 0; i < this.params.length; i++) {
+
+                    var key = this.params[i].fieldname;
+                    obj[key] = '';
+
+                  }
+                  this.item = obj;
+
+                  application.hideModal('update-modal')
+                  application.getRecords()
+                } else {
+                  alert('Error inserting item into database');
+                }
+              })
+              .catch(error => {
+                console.log(error)
+              })
+          } else {
+            alert('Sorry, fields marked with a * are mandatory');
+          }
+        }
+
+      },
+      created: function () {
+        this.getRecords();
+      },
+
+    })
+
+  </script>
+
+</body>
+
+</html>
